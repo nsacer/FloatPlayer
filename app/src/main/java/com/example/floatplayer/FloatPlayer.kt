@@ -4,6 +4,7 @@ import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
 import android.content.Context
 import android.graphics.PixelFormat
+import android.media.MediaPlayer
 import android.transition.TransitionManager
 import android.util.TypedValue
 import android.view.Gravity
@@ -40,6 +41,7 @@ class FloatPlayer private constructor() {
     //控件展开状态(默认展开)
     private var isExpansion = true
     private lateinit var animatorPlay: ObjectAnimator
+    private lateinit var mediaPlayer: MediaPlayer
 
     companion object {
 
@@ -56,8 +58,8 @@ class FloatPlayer private constructor() {
     fun show(context: Context) {
         if (isHideFloatPlayer) return
         mContext = context
-        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         init()
+        val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager.addView(mViewRoot, layoutParam)
         isShowing = true
 
@@ -96,8 +98,7 @@ class FloatPlayer private constructor() {
         layoutParam.gravity = Gravity.START or Gravity.BOTTOM
         //背景透明
         layoutParam.format = PixelFormat.TRANSPARENT
-        //可以点击外部区域
-        layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
+        layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
         layoutParam.x =
             TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 24f,
@@ -111,6 +112,8 @@ class FloatPlayer private constructor() {
             )
                 .toInt()
 
+        //TODO
+        if (isViewInit) return
         mViewRoot = LayoutInflater.from(FloatWindowApp.getAppContext())
             .inflate(R.layout.float_player_view, null)
         mCsRoot = mViewRoot.findViewById(R.id.csRootFloatPlayer)
