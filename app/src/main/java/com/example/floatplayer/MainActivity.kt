@@ -7,6 +7,7 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.WindowManager
@@ -45,17 +46,24 @@ open class MainActivity : AppCompatActivity() {
         initView()
     }
 
+    override fun onResume() {
+        super.onResume()
+        FloatPlayer.getInstance().show(this@MainActivity)
+    }
+
+    override fun onPause() {
+        super.onPause()
+        FloatPlayer.getInstance().dismiss(this)
+    }
+
     private fun initView() {
 
-        btnInit.setOnClickListener {
-//            initContactDialog()
-            initFloatPlayer()
-//           requestPermission()
+        btnNewPage.setOnClickListener {
+            startActivity(Intent(this, FirstActivity::class.java))
         }
 
-        btnNewPage.setOnClickListener {
-            toast("打开新页面")
-            startActivity(Intent(this, FirstActivity::class.java))
+        btnOpenPlayer.setOnClickListener {
+            FloatPlayer.getInstance().open(this)
         }
     }
 
