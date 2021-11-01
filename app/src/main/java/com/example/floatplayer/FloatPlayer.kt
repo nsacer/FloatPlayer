@@ -27,6 +27,7 @@ class FloatPlayer private constructor() {
     private var isShowing = false
     private var mViewRoot: View? = null
     private lateinit var mCsRoot: ConstraintLayout
+    private lateinit var mBgView: PlayerBgView
     private val mCsApply = ConstraintSet()
     private val mCsReset = ConstraintSet()
     private var mContext: Context? = null
@@ -123,6 +124,7 @@ class FloatPlayer private constructor() {
             .inflate(R.layout.float_player_view, null)
         mViewRoot!!.tag = true
         mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
+//        mBgView = mViewRoot!!.findViewById(R.id.bgViewPlayer)
         mCsApply.clone(mCsRoot)
         mCsReset.clone(mCsRoot)
 
