@@ -2,15 +2,21 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/csRootFloatPlayer"
-    android:layout_width="wrap_content"
-    android:layout_height="48dp"
-    android:background="@drawable/bg_float_player"
-    android:padding="8dp">
+    android:layout_width="168dp"
+    android:layout_height="48dp">
+
+    <com.example.floatplayer.BgView
+        android:id="@+id/bgViewPlayer"
+        android:layout_width="168dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="48dp"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/sivPlayerCover"
         android:layout_width="@dimen/player_icon_width"
         android:layout_height="0dp"
+        android:layout_marginStart="8dp"
         android:scaleType="centerCrop"
         android:src="@mipmap/ic_player_cover"
         app:layout_constraintBottom_toBottomOf="parent"
@@ -53,7 +59,6 @@
         android:contentDescription="@null"
         android:src="@drawable/ic_baseline_close_24"
         app:layout_constraintBottom_toBottomOf="@+id/sivPlayerCover"
-        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/ivPlayerNext"
         app:layout_constraintTop_toTopOf="@+id/sivPlayerCover"
         app:tint="@color/float_play_icon" />
