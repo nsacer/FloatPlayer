@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<MotionScene xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <ConstraintSet android:id="@+id/start">
+        <Constraint
+            android:id="@+id/sivPlayerCover"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="@+id/vBgPlayer"
+            app:layout_constraintStart_toStartOf="@+id/vBgPlayer"
+            app:layout_constraintTop_toTopOf="@+id/vBgPlayer" />
+        <Constraint
+            android:id="@+id/ivPlayerControl"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/sivPlayerCover"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/ivPlayerNext"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivPlayerControl"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/ivPlayerClose"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:layout_marginEnd="@dimen/player_icon_margin_start"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivPlayerNext"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/vBgPlayer"
+            android:layout_width="168dp"
+            android:layout_height="48dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </ConstraintSet>
+
+    <ConstraintSet android:id="@+id/end">
+        <Constraint
+            android:id="@id/sivPlayerCover"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="visible"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toStartOf="@+id/vBgPlayer"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/ivPlayerControl"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/sivPlayerCover"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/ivPlayerNext"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivPlayerControl"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/ivPlayerClose"
+            android:layout_width="@dimen/player_icon_width"
+            android:layout_height="@dimen/player_icon_width"
+            android:layout_marginStart="@dimen/player_icon_margin_start"
+            android:layout_marginEnd="@dimen/player_icon_margin_start"
+            android:visibility="gone"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivPlayerNext"
+            app:layout_constraintTop_toTopOf="parent" />
+        <Constraint
+            android:id="@+id/vBgPlayer"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+    </ConstraintSet>
+
+    <Transition
+        app:constraintSetEnd="@id/end"
+        app:constraintSetStart="@+id/start"
+        app:duration="400">
+        <OnClick
+            app:clickAction="toggle"
+            app:targetId="@id/sivPlayerCover" />
+    </Transition>
+</MotionScene>

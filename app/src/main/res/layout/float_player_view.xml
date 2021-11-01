@@ -3,18 +3,18 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/csRootFloatPlayer"
     android:layout_width="wrap_content"
-    android:layout_height="wrap_content"
+    android:layout_height="48dp"
     android:background="@drawable/bg_float_player"
-    android:minHeight="48dp"
-    android:paddingHorizontal="8dp">
+    android:padding="8dp">
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/sivPlayerCover"
-        android:layout_width="32dp"
-        android:layout_height="32dp"
+        android:layout_width="@dimen/player_icon_width"
+        android:layout_height="0dp"
         android:scaleType="centerCrop"
         android:src="@mipmap/ic_player_cover"
         app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintDimensionRatio="1"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent"
         app:shapeAppearance="@style/imgStyleCircle" />
@@ -23,7 +23,7 @@
         android:id="@+id/ivPlayerControl"
         android:layout_width="@dimen/player_icon_width"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/player_icon_margin_start"
         android:contentDescription="@null"
         android:src="@drawable/ic_baseline_play_arrow_24"
         app:layout_constraintBottom_toBottomOf="@+id/sivPlayerCover"
@@ -36,7 +36,7 @@
         android:id="@+id/ivPlayerNext"
         android:layout_width="@dimen/player_icon_width"
         android:layout_height="0dp"
-        android:layout_marginStart="16dp"
+        android:layout_marginStart="@dimen/player_icon_margin_start"
         android:contentDescription="@null"
         android:src="@drawable/ic_baseline_skip_next_24"
         app:layout_constraintBottom_toBottomOf="@+id/sivPlayerCover"
@@ -48,12 +48,12 @@
     <ImageView
         android:id="@+id/ivPlayerClose"
         android:layout_width="@dimen/player_icon_width"
-        android:layout_height="0dp"
-        android:layout_marginStart="16dp"
+        android:layout_height="@dimen/player_icon_width"
+        android:layout_marginStart="@dimen/player_icon_margin_start"
         android:contentDescription="@null"
         android:src="@drawable/ic_baseline_close_24"
         app:layout_constraintBottom_toBottomOf="@+id/sivPlayerCover"
-        app:layout_constraintDimensionRatio="1"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="@+id/ivPlayerNext"
         app:layout_constraintTop_toTopOf="@+id/sivPlayerCover"
         app:tint="@color/float_play_icon" />

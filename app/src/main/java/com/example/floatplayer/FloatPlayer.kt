@@ -23,13 +23,9 @@ class FloatPlayer private constructor() {
     //是否关闭控制器
     private var isHideFloatPlayer = false
 
-    //视图是否初始化
-    private var isViewInit = false
-
     //悬浮窗是否正在显示
     private var isShowing = false
-    private lateinit var layoutParam: WindowManager.LayoutParams
-    private lateinit var mViewRoot: View
+    private var mViewRoot: View? = null
     private lateinit var mCsRoot: ConstraintLayout
     private val mCsApply = ConstraintSet()
     private val mCsReset = ConstraintSet()
@@ -42,6 +38,10 @@ class FloatPlayer private constructor() {
     private var isExpansion = true
     private lateinit var animatorPlay: ObjectAnimator
     private lateinit var mediaPlayer: MediaPlayer
+
+    //音乐列表
+    private val mMusicList = arrayListOf(R.raw.shanghai, R.raw.withoutyou)
+    private var mMusicPosition = 0
 
     companion object {
 
@@ -58,9 +58,9 @@ class FloatPlayer private constructor() {
     fun show(context: Context) {
         if (isHideFloatPlayer) return
         mContext = context
-        init()
+        initView()
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManager.addView(mViewRoot, layoutParam)
+        windowManager.addView(mViewRoot, createLayoutParam(context))
         isShowing = true
 
         if (!isExpansion) playViewShrink()
@@ -84,13 +84,16 @@ class FloatPlayer private constructor() {
     //关闭播放控件
     fun close() {
         if (isHideFloatPlayer || mContext == null) return
+        mediaPlayer.stop()
+        mediaPlayer.release()
         dismiss(mContext!!)
         isHideFloatPlayer = true
     }
 
-    private fun init() {
+    //创建LayoutParam
+    private fun createLayoutParam(context: Context): WindowManager.LayoutParams {
 
-        layoutParam = WindowManager.LayoutParams()
+        val layoutParam = WindowManager.LayoutParams()
         layoutParam.width = WindowManager.LayoutParams.WRAP_CONTENT
         layoutParam.height = WindowManager.LayoutParams.WRAP_CONTENT
         //弹窗层级
@@ -102,52 +105,114 @@ class FloatPlayer private constructor() {
         layoutParam.x =
             TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 24f,
-                FloatWindowApp.getAppContext().resources.displayMetrics
-            )
-                .toInt()
+                context.resources.displayMetrics
+            ).toInt()
         layoutParam.y =
             TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 80f,
-                FloatWindowApp.getAppContext().resources.displayMetrics
-            )
-                .toInt()
+                context.resources.displayMetrics
+            ).toInt()
+        return layoutParam
+    }
 
-        //TODO
-        if (isViewInit) return
+    //初始化控件
+    private fun initView() {
+
+        if (mViewRoot?.tag != null) return
         mViewRoot = LayoutInflater.from(FloatWindowApp.getAppContext())
             .inflate(R.layout.float_player_view, null)
-        mCsRoot = mViewRoot.findViewById(R.id.csRootFloatPlayer)
+        mViewRoot!!.tag = true
+        mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
         mCsApply.clone(mCsRoot)
         mCsReset.clone(mCsRoot)
 
-        mViewRoot.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
+        mViewRoot!!.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)
         }
 
-        mViewRoot.findViewById<ImageView>(R.id.ivPlayerControl).setOnClickListener {
+        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl).setOnClickListener {
             playControlStatusSwitch(!isPlaying)
         }
 
-        mViewRoot.findViewById<ImageView>(R.id.ivPlayerNext)
+        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerNext)
             .setOnClickListener {
-                //TODO 下一首
-                Toast.makeText(mContext, "下一首", Toast.LENGTH_SHORT).show()
+                mediaPlayNext()
             }
-        mViewRoot.findViewById<ImageView>(R.id.ivPlayerClose).setOnClickListener {
+        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerClose).setOnClickListener {
             playControlStatusSwitch(false)
             close()
         }
 
-        initRotationAnimator(mViewRoot.findViewById<ImageView>(R.id.sivPlayerCover))
+        initRotationAnimator(mViewRoot!!.findViewById<ImageView>(R.id.sivPlayerCover))
 
-        isViewInit = true
+        //播放器
+        mediaPlayer = MediaPlayer.create(
+            FloatWindowApp.getAppContext(),
+            mMusicList[0]
+        )
+        mediaPlayer.setOnCompletionListener {
+            mediaPlayNext()
+        }
+        mediaPlayer.setOnErrorListener { _, _, _ ->
+            mediaPlayError()
+            true
+        }
     }
+
+    //创建音频播放器
+    private fun mediaPlayNext() {
+
+        mediaPlayer.stop()
+        mediaPlayer.release()
+
+        if (mMusicPosition >= mMusicList.size - 1) {
+            showToast("没有更多了")
+        } else {
+            mMusicPosition++
+            mediaPlayer = MediaPlayer.create(
+                FloatWindowApp.getAppContext(),
+                mMusicList[mMusicPosition]
+            )
+            mediaPlayer.start()
+        }
+    }
+
+    private fun showToast(message: String) {
+        if (mContext == null) return
+        Toast.makeText(mContext, message, Toast.LENGTH_SHORT).show()
+    }
+
+    //开始播放音频
+    private fun mediaPlayStart() {
+        if (mediaPlayer.isPlaying) return
+        mediaPlayer.start()
+    }
+
+    //暂停播放音频
+    private fun mediaPlayPause() {
+        if (mediaPlayer.isPlaying) {
+            mediaPlayer.pause()
+        }
+    }
+
+    //播放出错
+    private fun mediaPlayError() {
+        showToast("播放出错")
+        mediaPlayer.reset()
+    }
+
 
     //播放按钮状态控制
     private fun playControlStatusSwitch(startPlay: Boolean) {
 
-        val ivControl = mViewRoot.findViewById<ImageView>(R.id.ivPlayerControl)
+        val ivControl = mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl)
         if (startPlay) animStart() else animEnd()
+        if (startPlay) {
+            if (mediaPlayer.isPlaying) return
+            else mediaPlayStart()
+        } else {
+            if (mediaPlayer.isPlaying) mediaPlayPause()
+        }
         ivControl.setImageResource(
             if (startPlay) R.drawable.ic_baseline_pause_24
             else R.drawable.ic_baseline_play_arrow_24

@@ -56,6 +56,11 @@ open class MainActivity : AppCompatActivity() {
         FloatPlayer.getInstance().dismiss(this)
     }
 
+    override fun onDestroy() {
+        super.onDestroy()
+        FloatPlayer.getInstance().close()
+    }
+
     private fun initView() {
 
         btnNewPage.setOnClickListener {
