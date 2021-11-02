@@ -78,8 +78,10 @@ class FloatPlayer private constructor() {
 
     //开启展示播放控件
     fun open(context: Context) {
-        isHideFloatPlayer = false
-        show(context)
+        if (isHideFloatPlayer) {
+            isHideFloatPlayer = false
+            show(context)
+        }
     }
 
     //关闭播放控件
@@ -120,7 +122,7 @@ class FloatPlayer private constructor() {
     private fun initView() {
 
         if (mViewRoot?.tag != null) return
-        mViewRoot = LayoutInflater.from(FloatWindowApp.getAppContext())
+        mViewRoot = LayoutInflater.from(FloatApp.getAppContext())
             .inflate(R.layout.float_player_view, null)
         mViewRoot!!.tag = true
         mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
@@ -150,7 +152,7 @@ class FloatPlayer private constructor() {
 
         //播放器
         mediaPlayer = MediaPlayer.create(
-            FloatWindowApp.getAppContext(),
+            FloatApp.getAppContext(),
             mMusicList[0]
         )
         mediaPlayer!!.setOnCompletionListener {
@@ -173,7 +175,7 @@ class FloatPlayer private constructor() {
         } else {
             mMusicPosition++
             mediaPlayer = MediaPlayer.create(
-                FloatWindowApp.getAppContext(),
+                FloatApp.getAppContext(),
                 mMusicList[mMusicPosition]
             )
             mediaPlayer!!.start()

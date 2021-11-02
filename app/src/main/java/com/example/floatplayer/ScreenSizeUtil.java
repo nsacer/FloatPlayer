@@ -54,7 +54,7 @@ public class ScreenSizeUtil {
     }
 
     public static DisplayMetrics getDisplayMetrics() {
-        WindowManager wm = (WindowManager) FloatWindowApp.getAppContext()
+        WindowManager wm = (WindowManager) FloatApp.getAppContext()
                 .getSystemService(Context.WINDOW_SERVICE);
         final DisplayMetrics displayMetrics = new DisplayMetrics();
         wm.getDefaultDisplay().getMetrics(displayMetrics);
