@@ -59,7 +59,9 @@ class FloatPlayer private constructor() {
     fun show(context: Context) {
         if (isHideFloatPlayer) return
         mContext = context
+        initMediaPlayer()
         initView()
+        mViewRoot?.visibility = View.VISIBLE
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager.addView(mViewRoot, createLayoutParam(context))
         isShowing = true
@@ -70,6 +72,7 @@ class FloatPlayer private constructor() {
 
     fun dismiss(context: Context) {
         if (!isShowing) return
+        mViewRoot?.visibility = View.INVISIBLE
         val windowManger = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManger.removeView(mViewRoot)
         isShowing = false
@@ -87,8 +90,7 @@ class FloatPlayer private constructor() {
     //关闭播放控件
     fun close() {
         if (isHideFloatPlayer || mContext == null) return
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
+        destroyMediaPlayer()
         dismiss(mContext!!)
         isHideFloatPlayer = true
     }
@@ -149,12 +151,13 @@ class FloatPlayer private constructor() {
         }
 
         initRotationAnimator(mViewRoot!!.findViewById<ImageView>(R.id.sivPlayerCover))
+    }
 
-        //播放器
-        mediaPlayer = MediaPlayer.create(
-            FloatApp.getAppContext(),
-            mMusicList[0]
-        )
+    //初始化音频播放器
+    private fun initMediaPlayer() {
+
+        if (mediaPlayer != null) return
+        mediaPlayer = MediaPlayer.create(FloatApp.getAppContext(), mMusicList[0])
         mediaPlayer!!.setOnCompletionListener {
             mediaPlayNext()
         }
@@ -162,6 +165,13 @@ class FloatPlayer private constructor() {
             mediaPlayError()
             true
         }
+    }
+
+    //销毁MediaPlayer
+    private fun destroyMediaPlayer() {
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
+        mediaPlayer = null
     }
 
     //创建音频播放器
@@ -211,12 +221,12 @@ class FloatPlayer private constructor() {
     private fun playControlStatusSwitch(startPlay: Boolean) {
 
         val ivControl = mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl)
-        if (startPlay) animStart() else animEnd()
         if (startPlay) {
-            if (mediaPlayer?.isPlaying == true) return
-            else mediaPlayStart()
+            animStart()
+            mediaPlayStart()
         } else {
-            if (mediaPlayer?.isPlaying == true) mediaPlayPause()
+            animEnd()
+            mediaPlayPause()
         }
         ivControl.setImageResource(
             if (startPlay) R.drawable.ic_baseline_pause_24
