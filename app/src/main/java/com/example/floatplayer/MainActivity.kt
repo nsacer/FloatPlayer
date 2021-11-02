@@ -1,13 +1,16 @@
 package com.example.floatplayer
 
 import android.Manifest
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.util.Log
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.WindowManager
@@ -15,6 +18,7 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.app.NotificationCompat
 import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.android.synthetic.main.activity_main.*
 
@@ -70,6 +74,8 @@ open class MainActivity : AppCompatActivity() {
         btnOpenPlayer.setOnClickListener {
             FloatPlayer.getInstance().open(this)
         }
+
+        btnNotification.setOnClickListener { createNotification() }
     }
 
     private fun requestPermission() {
@@ -139,5 +145,35 @@ open class MainActivity : AppCompatActivity() {
 
     private fun toast(message: String) {
         Toast.makeText(this, message, Toast.LENGTH_SHORT).show()
+    }
+
+    //创建通知
+    private fun createNotification() {
+
+        val notification = NotificationCompat.Builder(
+            this,
+            getString(R.string.notification_channel_media)
+        )
+            .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+            .setSmallIcon(R.mipmap.ic_launcher)
+            .addAction(R.drawable.ic_baseline_pause_24, "switch", null)
+            .addAction(R.drawable.ic_baseline_skip_next_24, "next", null)
+            .setStyle(androidx.media.app.NotificationCompat.MediaStyle())
+            .setContentTitle("this is title")
+            .setContentText("this is content txt")
+            .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_player_cover))
+            .build()
+
+        val notificationManager =
+            getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            notificationManager.createNotificationChannel(
+                NotificationChannel(
+                    getString(R.string.notification_channel_media),
+                    "播放器", NotificationManager.IMPORTANCE_DEFAULT
+                )
+            )
+        }
+        notificationManager.notify(9666, notification)
     }
 }
