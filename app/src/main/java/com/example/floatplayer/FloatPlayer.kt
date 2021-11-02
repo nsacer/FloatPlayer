@@ -26,6 +26,7 @@ class FloatPlayer private constructor() {
     //悬浮窗是否正在显示
     private var isShowing = false
     private var mViewRoot: View? = null
+    private lateinit var mViewBg: BgView
     private lateinit var mCsRoot: ConstraintLayout
     private lateinit var mBgView: PlayerBgView
     private val mCsApply = ConstraintSet()
@@ -38,7 +39,7 @@ class FloatPlayer private constructor() {
     //控件展开状态(默认展开)
     private var isExpansion = true
     private lateinit var animatorPlay: ObjectAnimator
-    private lateinit var mediaPlayer: MediaPlayer
+    private var mediaPlayer: MediaPlayer? = null
 
     //音乐列表
     private val mMusicList = arrayListOf(R.raw.shanghai, R.raw.withoutyou)
@@ -85,8 +86,8 @@ class FloatPlayer private constructor() {
     //关闭播放控件
     fun close() {
         if (isHideFloatPlayer || mContext == null) return
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
         dismiss(mContext!!)
         isHideFloatPlayer = true
     }
@@ -128,8 +129,11 @@ class FloatPlayer private constructor() {
         mCsApply.clone(mCsRoot)
         mCsReset.clone(mCsRoot)
 
+        mViewBg = mViewRoot!!.findViewById(R.id.bgViewPlayer)
         mViewRoot!!.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)
+            //TODO
+            mViewBg.doAnimation()
         }
 
         mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl).setOnClickListener {
@@ -152,10 +156,10 @@ class FloatPlayer private constructor() {
             FloatWindowApp.getAppContext(),
             mMusicList[0]
         )
-        mediaPlayer.setOnCompletionListener {
+        mediaPlayer!!.setOnCompletionListener {
             mediaPlayNext()
         }
-        mediaPlayer.setOnErrorListener { _, _, _ ->
+        mediaPlayer!!.setOnErrorListener { _, _, _ ->
             mediaPlayError()
             true
         }
@@ -164,8 +168,8 @@ class FloatPlayer private constructor() {
     //创建音频播放器
     private fun mediaPlayNext() {
 
-        mediaPlayer.stop()
-        mediaPlayer.release()
+        mediaPlayer?.stop()
+        mediaPlayer?.release()
 
         if (mMusicPosition >= mMusicList.size - 1) {
             showToast("没有更多了")
@@ -175,7 +179,7 @@ class FloatPlayer private constructor() {
                 FloatWindowApp.getAppContext(),
                 mMusicList[mMusicPosition]
             )
-            mediaPlayer.start()
+            mediaPlayer!!.start()
         }
     }
 
@@ -186,21 +190,21 @@ class FloatPlayer private constructor() {
 
     //开始播放音频
     private fun mediaPlayStart() {
-        if (mediaPlayer.isPlaying) return
-        mediaPlayer.start()
+        if (mediaPlayer?.isPlaying == true) return
+        mediaPlayer?.start()
     }
 
     //暂停播放音频
     private fun mediaPlayPause() {
-        if (mediaPlayer.isPlaying) {
-            mediaPlayer.pause()
+        if (mediaPlayer?.isPlaying == true) {
+            mediaPlayer?.pause()
         }
     }
 
     //播放出错
     private fun mediaPlayError() {
         showToast("播放出错")
-        mediaPlayer.reset()
+        mediaPlayer?.reset()
     }
 
 
@@ -210,10 +214,10 @@ class FloatPlayer private constructor() {
         val ivControl = mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl)
         if (startPlay) animStart() else animEnd()
         if (startPlay) {
-            if (mediaPlayer.isPlaying) return
+            if (mediaPlayer?.isPlaying == true) return
             else mediaPlayStart()
         } else {
-            if (mediaPlayer.isPlaying) mediaPlayPause()
+            if (mediaPlayer?.isPlaying == true) mediaPlayPause()
         }
         ivControl.setImageResource(
             if (startPlay) R.drawable.ic_baseline_pause_24

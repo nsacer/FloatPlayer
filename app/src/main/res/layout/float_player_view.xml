@@ -2,15 +2,15 @@
 <androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/csRootFloatPlayer"
-    android:layout_width="wrap_content"
+    android:layout_width="168dp"
     android:layout_height="48dp">
 
-    <com.example.floatplayer.PlayerBgView
+    <com.example.floatplayer.BgView
         android:id="@+id/bgViewPlayer"
         android:layout_width="168dp"
-        android:layout_height="wrap_content"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_height="48dp"/>
 
     <com.google.android.material.imageview.ShapeableImageView
         android:id="@+id/sivPlayerCover"
