@@ -11,6 +11,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.support.v4.media.session.MediaControllerCompat
+import android.support.v4.media.session.PlaybackStateCompat
 import android.util.TypedValue
 import android.view.Gravity
 import android.view.WindowManager
@@ -19,6 +21,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
+import androidx.media.MediaBrowserServiceCompat
 import com.google.android.material.imageview.ShapeableImageView
 import kotlinx.android.synthetic.main.activity_main.*
 
