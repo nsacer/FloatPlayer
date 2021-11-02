@@ -1,47 +1,50 @@
 package com.example.floatplayer
 
+import android.animation.TypeEvaluator
+import android.animation.ValueAnimator
+import android.content.Context
+import android.graphics.Canvas
+import android.graphics.Color
+import android.graphics.Paint
 import android.util.AttributeSet
 import android.view.View
-import android.graphics.Paint
-import android.util.TypedValue
-import android.graphics.Color
-import android.graphics.Canvas
-import android.animation.ValueAnimator
-import com.example.floatplayer.BgView.PositiveEvaluator
-import android.animation.ValueAnimator.AnimatorUpdateListener
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
-import android.animation.TypeEvaluator
-import android.content.Context
-import com.example.floatplayer.BgView.NegativeEvaluator
 
 class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+
     private var mWidth = 0f
     private var mRadius = 0f
     private var mPositionEndX = 0f
     private var mPaint: Paint? = null
-
-    //是否展开
     private var bExpend = true
+    private val mColorBG = Color.parseColor("#D7D7D7")
+    private val mTimeAnim = 400L
+    private var mEndX = 0f
+
+    init {
+        initPaint()
+    }
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
         mWidth = w.toFloat()
         mRadius = h / 2f
         mPositionEndX = mWidth - mRadius
-        mPaint!!.strokeWidth = h.toFloat()
+        mEndX = mPositionEndX
+        measurePaintStrokeWidth(h.toFloat())
     }
 
     private fun initPaint() {
-        val fPaint = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP, 16f,
-            resources.displayMetrics
-        )
         mPaint = Paint()
         mPaint!!.isAntiAlias = true
         mPaint!!.style = Paint.Style.FILL
-        mPaint!!.color = Color.BLUE
+        mPaint!!.color = mColorBG
         mPaint!!.strokeCap = Paint.Cap.ROUND
-        mPaint!!.strokeWidth = fPaint
+    }
+
+    //设置画笔宽度为视图高度
+    private fun measurePaintStrokeWidth(height: Float) {
+        mPaint?.strokeWidth = height
     }
 
     override fun onDraw(canvas: Canvas) {
@@ -57,21 +60,21 @@ class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
     fun doAnimation() {
         if (bExpend) {
-            doNegAnimation()
+            doShrinkAnimation()
         } else {
-            doPosAnimation()
+            doExpandAnimation()
         }
         bExpend = !bExpend
     }
 
-    //动画
-    private fun doPosAnimation() {
-        val animator = ValueAnimator.ofObject(PositiveEvaluator(), mRadius, mWidth - mRadius)
+    //展开动画
+    private fun doExpandAnimation() {
+        val animator = ValueAnimator.ofObject(PositiveEvaluator(), mRadius, mEndX)
         animator.addUpdateListener { valueAnimator: ValueAnimator ->
             mPositionEndX = valueAnimator.animatedValue as Float
             invalidate()
         }
-        animator.duration = 400
+        animator.duration = mTimeAnim
         animator.interpolator = FastOutSlowInInterpolator()
         animator.start()
     }
@@ -82,16 +85,14 @@ class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         }
     }
 
-    /**
-     * 数据为正数的时候动画
-     */
-    private fun doNegAnimation() {
-        val animator = ValueAnimator.ofObject(NegativeEvaluator(), mRadius, mWidth - mRadius)
+    //收缩动画
+    private fun doShrinkAnimation() {
+        val animator = ValueAnimator.ofObject(NegativeEvaluator(), mRadius, mEndX)
         animator.addUpdateListener { valueAnimator: ValueAnimator ->
             mPositionEndX = valueAnimator.animatedValue as Float
             invalidate()
         }
-        animator.duration = 400
+        animator.duration = mTimeAnim
         animator.interpolator = FastOutSlowInInterpolator()
         animator.start()
     }
@@ -100,9 +101,5 @@ class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
         override fun evaluate(v: Float, startValue: Float, endValue: Float): Float {
             return endValue - v * (endValue - startValue)
         }
-    }
-
-    init {
-        initPaint()
     }
 }

@@ -28,7 +28,6 @@ class FloatPlayer private constructor() {
     private var mViewRoot: View? = null
     private lateinit var mViewBg: BgView
     private lateinit var mCsRoot: ConstraintLayout
-    private lateinit var mBgView: PlayerBgView
     private val mCsApply = ConstraintSet()
     private val mCsReset = ConstraintSet()
     private var mContext: Context? = null
@@ -125,14 +124,12 @@ class FloatPlayer private constructor() {
             .inflate(R.layout.float_player_view, null)
         mViewRoot!!.tag = true
         mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
-//        mBgView = mViewRoot!!.findViewById(R.id.bgViewPlayer)
         mCsApply.clone(mCsRoot)
         mCsReset.clone(mCsRoot)
 
         mViewBg = mViewRoot!!.findViewById(R.id.bgViewPlayer)
         mViewRoot!!.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)
-            //TODO
             mViewBg.doAnimation()
         }
 
