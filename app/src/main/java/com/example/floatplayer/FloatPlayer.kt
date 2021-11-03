@@ -234,7 +234,7 @@ class FloatPlayer private constructor() {
     //创建音频播放器
     private fun mediaPlayNext() {
 
-        if (mMusicPosition >= mMusicList.size - 1) {
+        if (!hasNext()) {
             showToast("没有更多了")
         } else {
 
