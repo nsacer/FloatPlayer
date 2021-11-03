@@ -21,7 +21,6 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
-import androidx.core.animation.addPauseListener
 import androidx.core.app.NotificationCompat
 import com.google.android.material.imageview.ShapeableImageView
 
@@ -357,13 +356,18 @@ class FloatPlayer private constructor() {
                 FloatApp.appContext,
                 111,
                 Intent(PlayerActionBroadCastReceiver.actionSwitch),
-                PendingIntent.FLAG_UPDATE_CURRENT
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                else PendingIntent.FLAG_UPDATE_CURRENT
             )
         ).build()
 
         val nextPendingIntent = PendingIntent.getBroadcast(
             FloatApp.appContext, 222,
-            Intent(PlayerActionBroadCastReceiver.actionNext), PendingIntent.FLAG_UPDATE_CURRENT
+            Intent(PlayerActionBroadCastReceiver.actionNext),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            else PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notification =

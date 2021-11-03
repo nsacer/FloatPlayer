@@ -126,13 +126,18 @@ open class MainActivity : BaseActivity() {
                 this,
                 111,
                 Intent(PlayerActionBroadCastReceiver.actionSwitch),
-                PendingIntent.FLAG_UPDATE_CURRENT
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                    PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+                else PendingIntent.FLAG_UPDATE_CURRENT
             )
         ).build()
 
         val nextPendingIntent = PendingIntent.getBroadcast(
             this, 222,
-            Intent(PlayerActionBroadCastReceiver.actionNext), PendingIntent.FLAG_UPDATE_CURRENT
+            Intent(PlayerActionBroadCastReceiver.actionNext),
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S)
+                PendingIntent.FLAG_MUTABLE or PendingIntent.FLAG_UPDATE_CURRENT
+            else PendingIntent.FLAG_UPDATE_CURRENT
         )
 
         val notification = NotificationCompat.Builder(
