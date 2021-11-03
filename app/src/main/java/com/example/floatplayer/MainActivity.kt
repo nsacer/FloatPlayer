@@ -6,7 +6,10 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.app.job.JobInfo
 import android.app.job.JobScheduler
-import android.content.*
+import android.content.ComponentName
+import android.content.Context
+import android.content.Intent
+import android.content.IntentFilter
 import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Build
@@ -15,13 +18,12 @@ import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
-import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
 import com.example.floatplayer.floatWindow_third.ContactWindowUtil
 import kotlinx.android.synthetic.main.activity_main.*
 
 
-open class MainActivity : AppCompatActivity() {
+open class MainActivity : BaseActivity() {
 
     private val mLauncherPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
@@ -47,16 +49,6 @@ open class MainActivity : AppCompatActivity() {
     override fun onStart() {
         super.onStart()
         registerPlayControlReceiver()
-    }
-
-    override fun onResume() {
-        super.onResume()
-        FloatPlayer.getInstance().show(this@MainActivity)
-    }
-
-    override fun onPause() {
-        super.onPause()
-        FloatPlayer.getInstance().dismiss(this)
     }
 
     override fun onDestroy() {

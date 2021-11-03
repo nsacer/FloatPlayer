@@ -27,8 +27,8 @@ import com.google.android.material.imageview.ShapeableImageView
 
 class FloatPlayer private constructor() {
 
-    //是否关闭控制器
-    private var isHideFloatPlayer = false
+    //播放器是否活动
+    private var isPlayerActive = false
 
     //悬浮窗是否正在显示
     private var isShowing = false
@@ -88,7 +88,7 @@ class FloatPlayer private constructor() {
 
     //显示播放控件
     fun show(context: Context) {
-        if (isHideFloatPlayer) return
+        if (!isPlayerActive) return
         mContext = context
         initMediaPlayer()
         initView()
@@ -97,14 +97,14 @@ class FloatPlayer private constructor() {
         windowManager.addView(mViewRoot, createLayoutParam(context))
         isShowing = true
 
-        if (!isExpansion) playViewShrink()
+        if (!isExpansion) playViewGone()
         if (isPlaying) playControlStatusSwitch(true)
     }
 
-    fun dismiss(context: Context) {
-        if (!isShowing) return
+    fun dismiss() {
+        if (!isShowing || mContext == null) return
         mViewRoot?.visibility = View.INVISIBLE
-        val windowManger = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+        val windowManger = mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManger.removeView(mViewRoot)
         isShowing = false
         mContext = null
@@ -112,8 +112,8 @@ class FloatPlayer private constructor() {
 
     //开启展示播放控件
     fun open(context: Context) {
-        if (isHideFloatPlayer) {
-            isHideFloatPlayer = false
+        if (!isPlayerActive) {
+            isPlayerActive = true
             show(context)
         }
     }
@@ -140,10 +140,10 @@ class FloatPlayer private constructor() {
 
     //关闭播放控件
     fun close() {
-        if (isHideFloatPlayer || mContext == null) return
+        if (!isPlayerActive || mContext == null) return
         destroyMediaPlayer()
-        dismiss(mContext!!)
-        isHideFloatPlayer = true
+        dismiss()
+        isPlayerActive = false
     }
 
     //创建LayoutParam
@@ -234,12 +234,13 @@ class FloatPlayer private constructor() {
     //创建音频播放器
     private fun mediaPlayNext() {
 
-        mediaPlayer?.stop()
-        mediaPlayer?.release()
-
         if (mMusicPosition >= mMusicList.size - 1) {
             showToast("没有更多了")
         } else {
+
+            mediaPlayer?.stop()
+            mediaPlayer?.release()
+
             mMusicPosition++
             mediaPlayer = MediaPlayer.create(
                 FloatApp.appContext,
@@ -326,18 +327,18 @@ class FloatPlayer private constructor() {
      * */
     private fun playExpansionStatusSwitch(expansion: Boolean) {
         if (expansion == isExpansion) return
-        if (expansion) playViewReset() else playViewShrink()
+        if (expansion) playViewVisible() else playViewGone()
         isExpansion = expansion
     }
 
     //展开播放控件
-    private fun playViewReset() {
+    private fun playViewVisible() {
         TransitionManager.beginDelayedTransition(mCsRoot)
         mCsReset.applyTo(mCsRoot)
     }
 
     //收缩播放控件
-    private fun playViewShrink() {
+    private fun playViewGone() {
         TransitionManager.beginDelayedTransition(mCsRoot)
         mCsApply.setVisibility(R.id.ivPlayerClose, View.GONE)
         mCsApply.setVisibility(R.id.ivPlayerNext, View.GONE)
@@ -375,17 +376,6 @@ class FloatPlayer private constructor() {
                 .setContentTitle("这是标题")
                 .setContentText("这是内容这是内容")
                 .build()
-
-//        val notificationManager = FloatApp.getAppContext()
-//            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-//            notificationManager.createNotificationChannel(
-//                NotificationChannel(
-//                    notificationChannelMedia,
-//                    "播放器", NotificationManager.IMPORTANCE_DEFAULT
-//                )
-//            )
-//        }
         mNotificationManager.notify(notificationMediaId, notification)
     }
 
