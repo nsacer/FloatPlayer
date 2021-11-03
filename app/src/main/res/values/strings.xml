@@ -2,5 +2,4 @@
     <string name="app_name">FloatPlayer</string>
     <string name="please_grant_permission">请授予所需权限</string>
     <string name="tag_play">isPlaying</string>
-    <string name="notification_channel_media">MediaNotification</string>
 </resources>

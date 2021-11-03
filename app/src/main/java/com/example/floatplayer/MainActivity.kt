@@ -3,26 +3,21 @@ package com.example.floatplayer
 import android.Manifest
 import android.app.NotificationChannel
 import android.app.NotificationManager
-import android.content.Context
-import android.content.Intent
+import android.app.PendingIntent
+import android.app.job.JobInfo
+import android.app.job.JobScheduler
+import android.content.*
 import android.graphics.BitmapFactory
-import android.graphics.PixelFormat
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.support.v4.media.session.MediaControllerCompat
-import android.support.v4.media.session.PlaybackStateCompat
-import android.util.TypedValue
-import android.view.Gravity
-import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.NotificationCompat
-import androidx.media.MediaBrowserServiceCompat
-import com.google.android.material.imageview.ShapeableImageView
+import com.example.floatplayer.floatWindow_third.ContactWindowUtil
 import kotlinx.android.synthetic.main.activity_main.*
 
 
@@ -31,7 +26,7 @@ open class MainActivity : AppCompatActivity() {
     private val mLauncherPermission =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) {
             if (it) {
-                initFloatPlayer()
+                toast("有系统弹窗权限")
             } else {
                 toast(R.string.please_grant_permission)
             }
@@ -39,11 +34,7 @@ open class MainActivity : AppCompatActivity() {
     private val mLauncherOverlay = registerForActivityResult(
         ActivityResultContracts.StartActivityForResult()
     ) {
-        if (it.resultCode == RESULT_OK) {
-            toast("数据OK")
-        } else {
-            toast("数据问题")
-        }
+        toast(if (it.resultCode == RESULT_OK) "数据OK" else "数据异常")
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -51,6 +42,11 @@ open class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         initView()
+    }
+
+    override fun onStart() {
+        super.onStart()
+        registerPlayControlReceiver()
     }
 
     override fun onResume() {
@@ -65,6 +61,7 @@ open class MainActivity : AppCompatActivity() {
 
     override fun onDestroy() {
         super.onDestroy()
+        cancelPlayControlReceiver()
         FloatPlayer.getInstance().close()
     }
 
@@ -78,14 +75,17 @@ open class MainActivity : AppCompatActivity() {
             FloatPlayer.getInstance().open(this)
         }
 
-        btnNotification.setOnClickListener { createNotification() }
+        btnStartService.setOnClickListener {
+            toast("启动服务")
+            startJobService()
+        }
     }
 
     private fun requestPermission() {
 
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             if (Settings.canDrawOverlays(this)) {
-                initFloatPlayer()
+                toast("有系统弹窗权限")
             } else {
                 requestOverlayPermission()
             }
@@ -104,42 +104,15 @@ open class MainActivity : AppCompatActivity() {
         mLauncherOverlay.launch(intent)
     }
 
-    //
+    //创建悬浮窗
     private fun initContactDialog() {
 
-        //TODO
-        val mContactUtil = ContactWindowUtil(this)
+        val mContactUtil =
+            ContactWindowUtil(this)
         mContactUtil.setDialogListener {
             toast(it)
         }
         mContactUtil.showContactView()
-    }
-
-    private fun initFloatPlayer() {
-
-        val layoutParam = WindowManager.LayoutParams()
-        layoutParam.width = WindowManager.LayoutParams.WRAP_CONTENT
-        layoutParam.height = WindowManager.LayoutParams.WRAP_CONTENT
-        //弹窗层级
-        layoutParam.type = WindowManager.LayoutParams.TYPE_APPLICATION
-        layoutParam.gravity = Gravity.START or Gravity.BOTTOM
-        //背景透明
-        layoutParam.format = PixelFormat.TRANSPARENT
-        //可以点击外部区域
-        layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL
-        layoutParam.x =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 24f, resources.displayMetrics)
-                .toInt()
-        layoutParam.y =
-            TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_DIP, 80f, resources.displayMetrics)
-                .toInt()
-
-        val mViewFloat = layoutInflater.inflate(R.layout.float_player_view, null)
-        mViewFloat.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
-            toast("播放器图片")
-        }
-
-        windowManager.addView(mViewFloat, layoutParam)
     }
 
     private fun toast(resId: Int) {
@@ -153,17 +126,34 @@ open class MainActivity : AppCompatActivity() {
     //创建通知
     private fun createNotification() {
 
+        val notificationCompatAction = NotificationCompat.Action.Builder(
+            if (FloatPlayer.getInstance().playing()) R.drawable.ic_baseline_pause_24
+            else R.drawable.ic_baseline_play_arrow_24,
+            "switch",
+            PendingIntent.getBroadcast(
+                this,
+                111,
+                Intent(PlayerActionBroadCastReceiver.actionSwitch),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        ).build()
+
+        val nextPendingIntent = PendingIntent.getBroadcast(
+            this, 222,
+            Intent(PlayerActionBroadCastReceiver.actionNext), PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
         val notification = NotificationCompat.Builder(
             this,
-            getString(R.string.notification_channel_media)
+            FloatPlayer.notificationChannelMedia
         )
             .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
             .setSmallIcon(R.mipmap.ic_launcher)
-            .addAction(R.drawable.ic_baseline_pause_24, "switch", null)
-            .addAction(R.drawable.ic_baseline_skip_next_24, "next", null)
+            .addAction(notificationCompatAction)
+            .addAction(R.drawable.ic_baseline_skip_next_24, "next", nextPendingIntent)
             .setStyle(androidx.media.app.NotificationCompat.MediaStyle())
-            .setContentTitle("this is title")
-            .setContentText("this is content txt")
+            .setContentTitle("这是标题")
+            .setContentText("这是内容这是内容")
             .setLargeIcon(BitmapFactory.decodeResource(resources, R.mipmap.ic_player_cover))
             .build()
 
@@ -172,11 +162,35 @@ open class MainActivity : AppCompatActivity() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
             notificationManager.createNotificationChannel(
                 NotificationChannel(
-                    getString(R.string.notification_channel_media),
+                    FloatPlayer.notificationChannelMedia,
                     "播放器", NotificationManager.IMPORTANCE_DEFAULT
                 )
             )
         }
-        notificationManager.notify(9666, notification)
+        notificationManager.notify(FloatPlayer.notificationMediaId, notification)
     }
+
+    //启动JobService
+    private fun startJobService() {
+
+        val builder = JobInfo.Builder(0, ComponentName(this, PlayerJobService::class.java))
+        // 设置启动后多长时间范围内随机开始执行任务
+        builder.setOverrideDeadline(0L)
+        (getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(builder.build())
+    }
+
+    //注册控制接受receiver
+    private fun registerPlayControlReceiver() {
+
+        val intentFilter = IntentFilter()
+        intentFilter.addAction(PlayerActionBroadCastReceiver.actionSwitch)
+        intentFilter.addAction(PlayerActionBroadCastReceiver.actionNext)
+        registerReceiver(FloatPlayer.getInstance().mPlayControlReceiver, intentFilter)
+    }
+
+    //取消注册receiver
+    private fun cancelPlayControlReceiver() {
+        unregisterReceiver(FloatPlayer.getInstance().mPlayControlReceiver)
+    }
+
 }

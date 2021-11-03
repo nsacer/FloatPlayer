@@ -5,7 +5,7 @@
     android:layout_width="168dp"
     android:layout_height="48dp">
 
-    <com.example.floatplayer.BgView
+    <com.example.floatplayer.PlayerBgView
         android:id="@+id/bgViewPlayer"
         android:layout_width="168dp"
         app:layout_constraintStart_toStartOf="parent"

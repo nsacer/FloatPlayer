@@ -2,9 +2,14 @@ package com.example.floatplayer
 
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
 import android.content.Context
+import android.content.Intent
 import android.graphics.PixelFormat
 import android.media.MediaPlayer
+import android.os.Build
 import android.transition.TransitionManager
 import android.util.TypedValue
 import android.view.Gravity
@@ -16,6 +21,8 @@ import android.widget.ImageView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
+import androidx.core.animation.addPauseListener
+import androidx.core.app.NotificationCompat
 import com.google.android.material.imageview.ShapeableImageView
 
 class FloatPlayer private constructor() {
@@ -26,7 +33,7 @@ class FloatPlayer private constructor() {
     //悬浮窗是否正在显示
     private var isShowing = false
     private var mViewRoot: View? = null
-    private lateinit var mViewBg: BgView
+    private lateinit var mViewBg: PlayerBgView
     private lateinit var mCsRoot: ConstraintLayout
     private val mCsApply = ConstraintSet()
     private val mCsReset = ConstraintSet()
@@ -37,21 +44,45 @@ class FloatPlayer private constructor() {
 
     //控件展开状态(默认展开)
     private var isExpansion = true
-    private lateinit var animatorPlay: ObjectAnimator
+    private lateinit var animCoverRotation: ObjectAnimator
     private var mediaPlayer: MediaPlayer? = null
 
     //音乐列表
     private val mMusicList = arrayListOf(R.raw.shanghai, R.raw.withoutyou)
     private var mMusicPosition = 0
+    var mPlayControlReceiver: PlayerActionBroadCastReceiver = PlayerActionBroadCastReceiver()
+    private lateinit var mNotificationManager: NotificationManager
 
     companion object {
 
+        const val notificationMediaId = 10010
+        const val notificationChannelMedia = "MediaNotification"
+
+        @Volatile
         private var instance: FloatPlayer? = null
 
-        @Synchronized
-        fun getInstance(): FloatPlayer {
-            if (instance == null) instance = FloatPlayer()
-            return instance as FloatPlayer
+        fun getInstance() = instance ?: synchronized(this) {
+            instance ?: FloatPlayer().also { instance = it }
+        }
+    }
+
+    init {
+
+        initNotificationManager()
+    }
+
+    private fun initNotificationManager() {
+
+        mNotificationManager = FloatApp.appContext
+            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            mNotificationManager.createNotificationChannel(
+                NotificationChannel(
+                    notificationChannelMedia,
+                    "播放器", NotificationManager.IMPORTANCE_DEFAULT
+                )
+            )
         }
     }
 
@@ -84,6 +115,26 @@ class FloatPlayer private constructor() {
         if (isHideFloatPlayer) {
             isHideFloatPlayer = false
             show(context)
+        }
+    }
+
+    //是否正在播放
+    fun playing(): Boolean {
+        return mediaPlayer?.isPlaying == true
+    }
+
+    //播放/暂停切换
+    fun playSwitch() {
+        if (mediaPlayer == null) return
+        mViewRoot?.findViewById<ImageView>(R.id.ivPlayerControl)?.performClick()
+    }
+
+    //切换下一首
+    fun playNext() {
+        if (hasNext()) {
+            mViewRoot?.findViewById<ImageView>(R.id.ivPlayerNext)?.performClick()
+        } else {
+            showToast("没有更多了")
         }
     }
 
@@ -124,7 +175,7 @@ class FloatPlayer private constructor() {
     private fun initView() {
 
         if (mViewRoot?.tag != null) return
-        mViewRoot = LayoutInflater.from(FloatApp.getAppContext())
+        mViewRoot = LayoutInflater.from(FloatApp.appContext)
             .inflate(R.layout.float_player_view, null)
         mViewRoot!!.tag = true
         mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
@@ -139,14 +190,15 @@ class FloatPlayer private constructor() {
 
         mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl).setOnClickListener {
             playControlStatusSwitch(!isPlaying)
+            updateNotification()
         }
 
-        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerNext)
-            .setOnClickListener {
-                mediaPlayNext()
-            }
+        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerNext).setOnClickListener {
+            mediaPlayNext()
+        }
         mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerClose).setOnClickListener {
             playControlStatusSwitch(false)
+            cancelNotificationMedia()
             close()
         }
 
@@ -157,7 +209,7 @@ class FloatPlayer private constructor() {
     private fun initMediaPlayer() {
 
         if (mediaPlayer != null) return
-        mediaPlayer = MediaPlayer.create(FloatApp.getAppContext(), mMusicList[0])
+        mediaPlayer = MediaPlayer.create(FloatApp.appContext, mMusicList[0])
         mediaPlayer!!.setOnCompletionListener {
             mediaPlayNext()
         }
@@ -174,6 +226,11 @@ class FloatPlayer private constructor() {
         mediaPlayer = null
     }
 
+    //是否还有下一首
+    private fun hasNext(): Boolean {
+        return mMusicList.isNotEmpty() && mMusicPosition < mMusicList.size - 1
+    }
+
     //创建音频播放器
     private fun mediaPlayNext() {
 
@@ -185,10 +242,12 @@ class FloatPlayer private constructor() {
         } else {
             mMusicPosition++
             mediaPlayer = MediaPlayer.create(
-                FloatApp.getAppContext(),
+                FloatApp.appContext,
                 mMusicList[mMusicPosition]
             )
             mediaPlayer!!.start()
+            playControlStatusSwitch(true)
+            updateNotification()
         }
     }
 
@@ -222,10 +281,10 @@ class FloatPlayer private constructor() {
 
         val ivControl = mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl)
         if (startPlay) {
-            animStart()
+            startCoverAnim()
             mediaPlayStart()
         } else {
-            animEnd()
+            stopCoverAnim()
             mediaPlayPause()
         }
         ivControl.setImageResource(
@@ -238,22 +297,27 @@ class FloatPlayer private constructor() {
     //初始化旋转动画
     private fun initRotationAnimator(target: View) {
         //顺时针
-        animatorPlay = ObjectAnimator.ofFloat(target, "rotation", 0f, 360f)
+        animCoverRotation = ObjectAnimator.ofFloat(target, "rotation", 0f, 360f)
         //3s一圈
-        animatorPlay.duration = 6000
-        animatorPlay.repeatMode = ValueAnimator.RESTART
-        animatorPlay.repeatCount = ValueAnimator.INFINITE
-        animatorPlay.interpolator = LinearInterpolator()
+        animCoverRotation.duration = 6000
+        animCoverRotation.repeatMode = ValueAnimator.RESTART
+        animCoverRotation.repeatCount = ValueAnimator.INFINITE
+        animCoverRotation.interpolator = LinearInterpolator()
     }
 
     //开始播放
-    private fun animStart() {
-        animatorPlay.start()
+    private fun startCoverAnim() {
+
+        if (animCoverRotation.isPaused) {
+            animCoverRotation.resume()
+        } else {
+            animCoverRotation.start()
+        }
     }
 
     //取消播放
-    private fun animEnd() {
-        animatorPlay.cancel()
+    private fun stopCoverAnim() {
+        animCoverRotation.pause()
     }
 
     /**
@@ -279,5 +343,54 @@ class FloatPlayer private constructor() {
         mCsApply.setVisibility(R.id.ivPlayerNext, View.GONE)
         mCsApply.setVisibility(R.id.ivPlayerControl, View.GONE)
         mCsApply.applyTo(mCsRoot)
+    }
+
+    //更新播放器通知UI
+    private fun updateNotification() {
+
+        val notificationCompatAction = NotificationCompat.Action.Builder(
+            if (playing()) R.drawable.ic_baseline_pause_24
+            else R.drawable.ic_baseline_play_arrow_24,
+            "switch",
+            PendingIntent.getBroadcast(
+                FloatApp.appContext,
+                111,
+                Intent(PlayerActionBroadCastReceiver.actionSwitch),
+                PendingIntent.FLAG_UPDATE_CURRENT
+            )
+        ).build()
+
+        val nextPendingIntent = PendingIntent.getBroadcast(
+            FloatApp.appContext, 222,
+            Intent(PlayerActionBroadCastReceiver.actionNext), PendingIntent.FLAG_UPDATE_CURRENT
+        )
+
+        val notification =
+            NotificationCompat.Builder(FloatApp.appContext, notificationChannelMedia)
+                .setVisibility(NotificationCompat.VISIBILITY_PUBLIC)
+                .setSmallIcon(R.mipmap.ic_launcher)
+                .addAction(notificationCompatAction)
+                .addAction(R.drawable.ic_baseline_skip_next_24, "next", nextPendingIntent)
+                .setStyle(androidx.media.app.NotificationCompat.MediaStyle())
+                .setContentTitle("这是标题")
+                .setContentText("这是内容这是内容")
+                .build()
+
+//        val notificationManager = FloatApp.getAppContext()
+//            .getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+//        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+//            notificationManager.createNotificationChannel(
+//                NotificationChannel(
+//                    notificationChannelMedia,
+//                    "播放器", NotificationManager.IMPORTANCE_DEFAULT
+//                )
+//            )
+//        }
+        mNotificationManager.notify(notificationMediaId, notification)
+    }
+
+    //取消掉通知栏播放器
+    private fun cancelNotificationMedia() {
+        mNotificationManager.cancel(notificationMediaId)
     }
 }

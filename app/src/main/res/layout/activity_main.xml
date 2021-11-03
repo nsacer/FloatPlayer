@@ -6,31 +6,32 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-    <Button
-        android:id="@+id/btnNewPage"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="16dp"
-        android:text="新页面"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
+    <com.google.android.flexbox.FlexboxLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        app:alignItems="flex_start"
+        app:flexDirection="row"
+        app:flexWrap="wrap">
 
-    <Button
-        android:id="@+id/btnOpenPlayer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginStart="8dp"
-        android:text="开启播放器"
-        app:layout_constraintStart_toEndOf="@+id/btnNewPage"
-        app:layout_constraintTop_toTopOf="parent" />
+        <Button
+            android:id="@+id/btnNewPage"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="新页面" />
 
-    <Button
-        android:id="@+id/btnNotification"
-        app:layout_constraintStart_toEndOf="@+id/btnOpenPlayer"
-        app:layout_constraintTop_toTopOf="parent"
-        android:layout_width="wrap_content"
-        android:layout_marginStart="8dp"
-        android:layout_height="wrap_content"
-        android:text="创建通知"/>
+        <Button
+            android:id="@+id/btnOpenPlayer"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="开启播放器" />
+
+        <Button
+            android:id="@+id/btnStartService"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="启动服务" />
+    </com.google.android.flexbox.FlexboxLayout>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

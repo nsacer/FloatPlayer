@@ -10,15 +10,31 @@ import android.util.AttributeSet
 import android.view.View
 import androidx.interpolator.view.animation.FastOutSlowInInterpolator
 
-class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
+/**
+ * 播放器自定义的背景View：因为Constraint动画有显示瑕疵
+ * */
+class PlayerBgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
 
+    //控件宽度
     private var mWidth = 0f
+
+    //背景圆形半径（控件高度一半）
     private var mRadius = 0f
+
+    //动画执行中的终点坐标
     private var mPositionEndX = 0f
     private var mPaint: Paint? = null
+
+    //是否展开状态
     private var bExpend = true
+
+    //背景颜色
     private val mColorBG = Color.parseColor("#D7D7D7")
+
+    //动画时长
     private val mTimeAnim = 400L
+
+    //展开后终点坐标x，固定
     private var mEndX = 0f
 
     init {
@@ -59,11 +75,7 @@ class BgView(context: Context?, attrs: AttributeSet?) : View(context, attrs) {
     }
 
     fun doAnimation() {
-        if (bExpend) {
-            doShrinkAnimation()
-        } else {
-            doExpandAnimation()
-        }
+        if (bExpend) doShrinkAnimation() else doExpandAnimation()
         bExpend = !bExpend
     }
 

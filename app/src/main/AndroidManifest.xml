@@ -10,6 +10,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.FloatPlayer">
+        <service android:name=".notificationPlayer_third.AudioPlayerService"/>
+        <service android:name=".PlayerJobService"
+            android:permission="android.permission.BIND_JOB_SERVICE"/>
         <activity
             android:name=".FirstActivity"
             android:exported="false" />

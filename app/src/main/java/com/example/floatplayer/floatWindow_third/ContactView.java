@@ -1,4 +1,4 @@
-package com.example.floatplayer;
+package com.example.floatplayer.floatWindow_third;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -6,6 +6,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.util.AttributeSet;
 import android.view.View;
+
+import com.example.floatplayer.R;
 
 
 public class ContactView extends View {

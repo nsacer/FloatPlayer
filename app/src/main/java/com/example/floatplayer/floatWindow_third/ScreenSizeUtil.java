@@ -1,4 +1,4 @@
-package com.example.floatplayer;
+package com.example.floatplayer.floatWindow_third;
 
 import android.app.Activity;
 import android.content.Context;
@@ -7,6 +7,8 @@ import android.util.DisplayMetrics;
 import android.util.TypedValue;
 import android.view.View;
 import android.view.WindowManager;
+
+import com.example.floatplayer.FloatApp;
 
 import java.lang.reflect.Field;
 
