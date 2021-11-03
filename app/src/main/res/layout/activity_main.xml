@@ -24,4 +24,13 @@
         app:layout_constraintStart_toEndOf="@+id/btnNewPage"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/btnNotification"
+        app:layout_constraintStart_toEndOf="@+id/btnOpenPlayer"
+        app:layout_constraintTop_toTopOf="parent"
+        android:layout_width="wrap_content"
+        android:layout_marginStart="8dp"
+        android:layout_height="wrap_content"
+        android:text="创建通知"/>
+
 </androidx.constraintlayout.widget.ConstraintLayout>
