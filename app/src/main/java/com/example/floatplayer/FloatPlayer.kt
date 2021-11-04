@@ -17,12 +17,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.WindowManager
 import android.view.animation.LinearInterpolator
-import android.widget.ImageView
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.constraintlayout.widget.ConstraintSet
 import androidx.core.app.NotificationCompat
-import com.google.android.material.imageview.ShapeableImageView
+import com.example.floatplayer.databinding.FloatPlayerViewBinding
 
 class FloatPlayer private constructor() {
 
@@ -31,9 +29,7 @@ class FloatPlayer private constructor() {
 
     //悬浮窗是否正在显示
     private var isShowing = false
-    private var mViewRoot: View? = null
-    private lateinit var mViewBg: PlayerBgView
-    private lateinit var mCsRoot: ConstraintLayout
+    private lateinit var bindingFloatPlayer: FloatPlayerViewBinding
     private val mCsApply = ConstraintSet()
     private val mCsReset = ConstraintSet()
     private var mContext: Context? = null
@@ -68,6 +64,8 @@ class FloatPlayer private constructor() {
     init {
 
         initNotificationManager()
+
+        initView()
     }
 
     private fun initNotificationManager() {
@@ -90,18 +88,17 @@ class FloatPlayer private constructor() {
         if (!isPlayerActive) return
         mContext = context
         initMediaPlayer()
-        initView()
-        mViewRoot?.visibility = View.VISIBLE
+        bindingFloatPlayer.root.visibility = View.VISIBLE
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManager.addView(mViewRoot, createLayoutParam(context))
+        windowManager.addView(bindingFloatPlayer.root, createLayoutParam(context))
         isShowing = true
     }
 
     fun dismiss() {
         if (!isShowing || mContext == null) return
-        mViewRoot?.visibility = View.INVISIBLE
+        bindingFloatPlayer.root.visibility = View.INVISIBLE
         val windowManger = mContext!!.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManger.removeView(mViewRoot)
+        windowManger.removeView(bindingFloatPlayer.root)
         isShowing = false
         mContext = null
     }
@@ -122,13 +119,13 @@ class FloatPlayer private constructor() {
     //播放/暂停切换
     fun playSwitch() {
         if (mediaPlayer == null) return
-        mViewRoot?.findViewById<ImageView>(R.id.ivPlayerControl)?.performClick()
+        bindingFloatPlayer.ivPlayerControl.performClick()
     }
 
     //切换下一首
     fun playNext() {
         if (hasNext()) {
-            mViewRoot?.findViewById<ImageView>(R.id.ivPlayerNext)?.performClick()
+            bindingFloatPlayer.ivPlayerNext.performClick()
         } else {
             showToast("没有更多了")
         }
@@ -170,35 +167,32 @@ class FloatPlayer private constructor() {
     //初始化控件
     private fun initView() {
 
-        if (mViewRoot?.tag != null) return
-        mViewRoot = LayoutInflater.from(FloatApp.appContext)
-            .inflate(R.layout.float_player_view, null)
-        mViewRoot!!.tag = true
-        mCsRoot = mViewRoot!!.findViewById(R.id.csRootFloatPlayer)
-        mCsApply.clone(mCsRoot)
-        mCsReset.clone(mCsRoot)
+        bindingFloatPlayer =
+            FloatPlayerViewBinding.inflate(LayoutInflater.from(FloatApp.appContext))
+        mCsApply.clone(bindingFloatPlayer.root)
+        mCsReset.clone(bindingFloatPlayer.root)
 
-        mViewBg = mViewRoot!!.findViewById(R.id.bgViewPlayer)
-        mViewRoot!!.findViewById<ShapeableImageView>(R.id.sivPlayerCover).setOnClickListener {
+        bindingFloatPlayer.sivPlayerCover.setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)
-            mViewBg.doAnimation()
+            bindingFloatPlayer.bgViewPlayer.doAnimation()
         }
 
-        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl).setOnClickListener {
+        bindingFloatPlayer.ivPlayerControl.setOnClickListener {
             playControlStatusSwitch(!isPlaying)
             updateNotification()
         }
 
-        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerNext).setOnClickListener {
+        bindingFloatPlayer.ivPlayerNext.setOnClickListener {
             mediaPlayNext()
         }
-        mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerClose).setOnClickListener {
+
+        bindingFloatPlayer.ivPlayerClose.setOnClickListener {
             playControlStatusSwitch(false)
             cancelNotificationMedia()
             close()
         }
 
-        initRotationAnimator(mViewRoot!!.findViewById<ImageView>(R.id.sivPlayerCover))
+        initRotationAnimator(bindingFloatPlayer.sivPlayerCover)
     }
 
     //初始化音频播放器
@@ -276,7 +270,6 @@ class FloatPlayer private constructor() {
     //播放按钮状态控制
     private fun playControlStatusSwitch(startPlay: Boolean) {
 
-        val ivControl = mViewRoot!!.findViewById<ImageView>(R.id.ivPlayerControl)
         if (startPlay) {
             startCoverAnim()
             mediaPlayStart()
@@ -284,7 +277,7 @@ class FloatPlayer private constructor() {
             stopCoverAnim()
             mediaPlayPause()
         }
-        ivControl.setImageResource(
+        bindingFloatPlayer.ivPlayerControl.setImageResource(
             if (startPlay) R.drawable.ic_baseline_pause_24
             else R.drawable.ic_baseline_play_arrow_24
         )
@@ -329,17 +322,17 @@ class FloatPlayer private constructor() {
 
     //展开播放控件
     private fun playViewExpansion() {
-        TransitionManager.beginDelayedTransition(mCsRoot)
-        mCsReset.applyTo(mCsRoot)
+        TransitionManager.beginDelayedTransition(bindingFloatPlayer.root)
+        mCsReset.applyTo(bindingFloatPlayer.root)
     }
 
     //收缩播放控件
     private fun playViewShrink() {
-        TransitionManager.beginDelayedTransition(mCsRoot)
+        TransitionManager.beginDelayedTransition(bindingFloatPlayer.root)
         mCsApply.setVisibility(R.id.ivPlayerClose, View.GONE)
         mCsApply.setVisibility(R.id.ivPlayerNext, View.GONE)
         mCsApply.setVisibility(R.id.ivPlayerControl, View.GONE)
-        mCsApply.applyTo(mCsRoot)
+        mCsApply.applyTo(bindingFloatPlayer.root)
     }
 
     //更新播放器通知UI
