@@ -95,9 +95,6 @@ class FloatPlayer private constructor() {
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
         windowManager.addView(mViewRoot, createLayoutParam(context))
         isShowing = true
-
-        if (!isExpansion) playViewGone()
-        if (isPlaying) playControlStatusSwitch(true)
     }
 
     fun dismiss() {
@@ -326,18 +323,18 @@ class FloatPlayer private constructor() {
      * */
     private fun playExpansionStatusSwitch(expansion: Boolean) {
         if (expansion == isExpansion) return
-        if (expansion) playViewVisible() else playViewGone()
+        if (expansion) playViewExpansion() else playViewShrink()
         isExpansion = expansion
     }
 
     //展开播放控件
-    private fun playViewVisible() {
+    private fun playViewExpansion() {
         TransitionManager.beginDelayedTransition(mCsRoot)
         mCsReset.applyTo(mCsRoot)
     }
 
     //收缩播放控件
-    private fun playViewGone() {
+    private fun playViewShrink() {
         TransitionManager.beginDelayedTransition(mCsRoot)
         mCsApply.setVisibility(R.id.ivPlayerClose, View.GONE)
         mCsApply.setVisibility(R.id.ivPlayerNext, View.GONE)

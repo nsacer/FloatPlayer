@@ -19,8 +19,8 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresApi
 import androidx.core.app.NotificationCompat
+import com.example.floatplayer.databinding.ActivityMainBinding
 import com.example.floatplayer.floatWindow_third.ContactWindowUtil
-import kotlinx.android.synthetic.main.activity_main.*
 
 
 open class MainActivity : BaseActivity() {
@@ -39,10 +39,12 @@ open class MainActivity : BaseActivity() {
         toast(if (it.resultCode == RESULT_OK) "数据OK" else "数据异常")
     }
 
+    private lateinit var bindingMain: ActivityMainBinding
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-
+        bindingMain = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(bindingMain.root)
         initView()
     }
 
@@ -59,15 +61,15 @@ open class MainActivity : BaseActivity() {
 
     private fun initView() {
 
-        btnNewPage.setOnClickListener {
+        bindingMain.btnNewPage.setOnClickListener {
             startActivity(Intent(this, FirstActivity::class.java))
         }
 
-        btnOpenPlayer.setOnClickListener {
+        bindingMain.btnOpenPlayer.setOnClickListener {
             FloatPlayer.getInstance().open(this)
         }
 
-        btnStartService.setOnClickListener {
+        bindingMain.btnStartService.setOnClickListener {
             toast("启动服务")
             startJobService()
         }
