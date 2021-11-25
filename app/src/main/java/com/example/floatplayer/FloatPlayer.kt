@@ -7,15 +7,14 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.ActivityInfo
 import android.graphics.PixelFormat
 import android.media.MediaPlayer
 import android.os.Build
 import android.transition.TransitionManager
+import android.util.Log
 import android.util.TypedValue
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.WindowManager
+import android.view.*
 import android.view.animation.LinearInterpolator
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintSet
@@ -83,6 +82,15 @@ class FloatPlayer private constructor() {
         }
     }
 
+    //展开更新params
+    fun updateLayoutParam(expand: Boolean) {
+
+        bindingFloatPlayer.root?.context?.let {
+            val windowManager = it.getSystemService(Context.WINDOW_SERVICE) as WindowManager
+            windowManager?.updateViewLayout(bindingFloatPlayer.root, createLayoutParam(it, expand))
+        }
+    }
+
     //显示播放控件
     fun show(context: Context) {
         if (!isPlayerActive) return
@@ -90,7 +98,7 @@ class FloatPlayer private constructor() {
         initMediaPlayer()
         bindingFloatPlayer.root.visibility = View.VISIBLE
         val windowManager = context.getSystemService(Context.WINDOW_SERVICE) as WindowManager
-        windowManager.addView(bindingFloatPlayer.root, createLayoutParam(context))
+        windowManager.addView(bindingFloatPlayer.root, createLayoutParam(context, isExpansion))
         isShowing = true
     }
 
@@ -140,7 +148,7 @@ class FloatPlayer private constructor() {
     }
 
     //创建LayoutParam
-    private fun createLayoutParam(context: Context): WindowManager.LayoutParams {
+    private fun createLayoutParam(context: Context, expand: Boolean): WindowManager.LayoutParams {
 
         val layoutParam = WindowManager.LayoutParams()
         layoutParam.width = WindowManager.LayoutParams.WRAP_CONTENT
@@ -150,7 +158,21 @@ class FloatPlayer private constructor() {
         layoutParam.gravity = Gravity.START or Gravity.BOTTOM
         //背景透明
         layoutParam.format = PixelFormat.TRANSPARENT
-        layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE
+//        layoutParam.flags = 0
+        if (expand) {
+            layoutParam.flags =
+                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH or
+//                    WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+                    WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+//            layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+//                    WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
+        } else {
+            layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_FOCUSABLE or
+                    WindowManager.LayoutParams.FLAG_ALT_FOCUSABLE_IM
+        }
+//        layoutParam.flags = WindowManager.LayoutParams.FLAG_NOT_TOUCH_MODAL or
+//                WindowManager.LayoutParams.FLAG_WATCH_OUTSIDE_TOUCH
         layoutParam.x =
             TypedValue.applyDimension(
                 TypedValue.COMPLEX_UNIT_DIP, 24f,
@@ -172,9 +194,19 @@ class FloatPlayer private constructor() {
         mCsApply.clone(bindingFloatPlayer.root)
         mCsReset.clone(bindingFloatPlayer.root)
 
+        bindingFloatPlayer.root.setOnTouchListener(object : View.OnTouchListener{
+            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
+                return if (event?.action == MotionEvent.ACTION_OUTSIDE) {
+                    showToast("click out")
+                    playExpansionStatusSwitch(false)
+                    false
+                } else false
+            }
+
+        })
+
         bindingFloatPlayer.sivPlayerCover.setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)
-            bindingFloatPlayer.bgViewPlayer.doAnimation()
         }
 
         bindingFloatPlayer.ivPlayerControl.setOnClickListener {
@@ -316,8 +348,17 @@ class FloatPlayer private constructor() {
      * */
     private fun playExpansionStatusSwitch(expansion: Boolean) {
         if (expansion == isExpansion) return
-        if (expansion) playViewExpansion() else playViewShrink()
+        if (expansion) {
+            playViewExpansion()
+        } else {
+            playViewShrink()
+        }
         isExpansion = expansion
+
+        //背景动画
+        bindingFloatPlayer.bgViewPlayer.doAnimation()
+
+        updateLayoutParam(expansion)
     }
 
     //展开播放控件

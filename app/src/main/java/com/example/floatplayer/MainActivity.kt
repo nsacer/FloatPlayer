@@ -67,6 +67,7 @@ open class MainActivity : BaseActivity() {
 
         bindingMain.btnOpenPlayer.setOnClickListener {
             FloatPlayer.getInstance().open(this)
+//            FloatPlayer.getInstance().appOpen()
         }
 
         bindingMain.btnStartService.setOnClickListener {
