@@ -156,7 +156,7 @@ class FloatPlayer private constructor() {
         //弹窗层级
         layoutParam.type = WindowManager.LayoutParams.TYPE_APPLICATION
         layoutParam.gravity = Gravity.START or Gravity.BOTTOM
-        //背景透明
+        //背景透明（默认透明）
         layoutParam.format = PixelFormat.TRANSPARENT
 //        layoutParam.flags = 0
         if (expand) {
@@ -194,16 +194,13 @@ class FloatPlayer private constructor() {
         mCsApply.clone(bindingFloatPlayer.root)
         mCsReset.clone(bindingFloatPlayer.root)
 
-        bindingFloatPlayer.root.setOnTouchListener(object : View.OnTouchListener{
-            override fun onTouch(v: View?, event: MotionEvent?): Boolean {
-                return if (event?.action == MotionEvent.ACTION_OUTSIDE) {
-                    showToast("click out")
-                    playExpansionStatusSwitch(false)
-                    false
-                } else false
-            }
-
-        })
+        bindingFloatPlayer.root.setOnTouchListener { v, event ->
+            if (event?.action == MotionEvent.ACTION_OUTSIDE) {
+                showToast("click out")
+                playExpansionStatusSwitch(false)
+                false
+            } else false
+        }
 
         bindingFloatPlayer.sivPlayerCover.setOnClickListener {
             playExpansionStatusSwitch(!isExpansion)

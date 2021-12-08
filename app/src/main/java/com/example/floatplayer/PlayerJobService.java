@@ -9,6 +9,11 @@ import android.util.Log;
  */
 public class PlayerJobService extends JobService {
 
+    //Job的ID，保证该Job的唯一性
+    public static final int ID_JOB_PLAYER = 10010;
+    //Job延迟启动时间，单位ms
+    public static final long TIME_DELAY_START_JOB = 3000L;
+
     @Override
     public boolean onStartJob(JobParameters params) {
         Log.i("zhao", "JobService onStartJob");

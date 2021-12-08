@@ -173,19 +173,25 @@ open class MainActivity : BaseActivity() {
     //启动JobService
     private fun startJobService() {
 
-        val builder = JobInfo.Builder(0, ComponentName(this, PlayerJobService::class.java))
-        // 设置启动后多长时间范围内随机开始执行任务
-        builder.setOverrideDeadline(0L)
-        (getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(builder.build())
+        JobInfo.Builder(PlayerJobService.ID_JOB_PLAYER,
+            ComponentName(this, PlayerJobService::class.java)).apply {
+            setOverrideDeadline(PlayerJobService.TIME_DELAY_START_JOB)
+            setPeriodic(1000L)
+        }.let {
+            (getSystemService(JOB_SCHEDULER_SERVICE) as JobScheduler).schedule(it.build())
+        }
     }
 
     //注册控制接受receiver
     private fun registerPlayControlReceiver() {
 
-        val intentFilter = IntentFilter()
-        intentFilter.addAction(PlayerActionBroadCastReceiver.actionSwitch)
-        intentFilter.addAction(PlayerActionBroadCastReceiver.actionNext)
-        registerReceiver(FloatPlayer.getInstance().mPlayControlReceiver, intentFilter)
+        registerReceiver(
+            FloatPlayer.getInstance().mPlayControlReceiver,
+            IntentFilter().apply {
+                addAction(PlayerActionBroadCastReceiver.actionNext)
+                addAction(PlayerActionBroadCastReceiver.actionSwitch)
+            }
+        )
     }
 
     //取消注册receiver
