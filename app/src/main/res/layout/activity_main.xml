@@ -33,6 +33,14 @@
             android:layout_marginStart="8dp"
             android:visibility="gone"
             android:text="启动服务" />
+
+        <Button
+            android:id="@+id/btnPrintError"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:text="错误打印" />
+
     </com.google.android.flexbox.FlexboxLayout>
 
     <androidx.appcompat.widget.AppCompatEditText

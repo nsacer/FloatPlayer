@@ -74,6 +74,23 @@ open class MainActivity : BaseActivity() {
             toast("启动服务")
             startJobService()
         }
+
+        // 错误打印
+        bindingMain.btnPrintError.setOnClickListener {
+            printError()
+        }
+    }
+
+    private fun printError() {
+
+        val one = arrayOf("111", "222", "333")
+        try {
+            showMessage(one[4].plus("0"))
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+
+        showMessage("after Exception")
     }
 
     private fun requestPermission() {
@@ -173,8 +190,10 @@ open class MainActivity : BaseActivity() {
     //启动JobService
     private fun startJobService() {
 
-        JobInfo.Builder(PlayerJobService.ID_JOB_PLAYER,
-            ComponentName(this, PlayerJobService::class.java)).apply {
+        JobInfo.Builder(
+            PlayerJobService.ID_JOB_PLAYER,
+            ComponentName(this, PlayerJobService::class.java)
+        ).apply {
             setOverrideDeadline(PlayerJobService.TIME_DELAY_START_JOB)
             setPeriodic(1000L)
         }.let {
